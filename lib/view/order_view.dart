@@ -34,6 +34,52 @@ class _OrderViewState extends State<OrderView> {
     widget.onUpdate();
   }
 
+  void removeOrder(int index) {
+    setState(() {
+      widget.orders.removeAt(index);
+    });
+    widget.onUpdate();
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Item berhasil dihapus dari pesanan'),
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void showDeleteConfirmation(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Hapus Item'),
+          content: Text('Apakah Anda yakin ingin menghapus ${widget.orders[index].menu.name} dari pesanan?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                removeOrder(index);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Hapus'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   double getTotalPrice() {
     double total = 0;
     for (var order in widget.orders) {
@@ -109,12 +155,12 @@ class _OrderViewState extends State<OrderView> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Harga: Rp ${order.menu.price}'),
-                              Text('Total: Rp $totalPerItem'),
+                              Text('Harga: Rp ${order.menu.price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}'),
+                              Text('Total: Rp ${totalPerItem.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}'),
                             ],
                           ),
                           trailing: SizedBox(
-                            width: 120,
+                            width: 160,
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -129,6 +175,10 @@ class _OrderViewState extends State<OrderView> {
                                 IconButton(
                                   icon: const Icon(Icons.add),
                                   onPressed: () => increaseQuantity(index),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => showDeleteConfirmation(index),
                                 ),
                               ],
                             ),
@@ -158,7 +208,7 @@ class _OrderViewState extends State<OrderView> {
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        'Rp ${getTotalPrice().toStringAsFixed(0)}',
+                        'Rp ${getTotalPrice().toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
